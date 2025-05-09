@@ -1,19 +1,28 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.infrastructure.db.session import get_session
+from app.infrastructure.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate
+from app.use_cases.order_usecase import OrderUseCase
 
 router = APIRouter()
+
+
+def get_usecase(session: AsyncSession) -> OrderUseCase:
+    return OrderUseCase(OrderRepository(session))
+
+
+@router.get("/")
+async def list_orders(session: AsyncSession = Depends(get_session)):
+    usecase = get_usecase(session=session)
+    return await usecase.list_orders()
 
 
 @router.post("/")  # <- Aquí el método POST
 async def create_order(data: OrderCreate):
     print(data)
     return {}  # Retorna un diccionario
-
-
-# @router.get("/")  # <- Aquí el método GET
-# async def list_all_orders():
-#     return []  # Retorna un listado
 
 
 # @router.get("/{order_id}")  # <- Aquí el método GET
