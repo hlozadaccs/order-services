@@ -37,16 +37,18 @@ class Order(Base):
     )
     user_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
-    items = relationship("OrderItem", back_populates="order")
+    orderitems = relationship("OrderItem", back_populates="order", cascade="all")
 
 
 class OrderItem(Base):
     __tablename__ = "services_orderitem"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, index=True)
-    order_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("orders.id"))
+    order_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey("services_order.id")
+    )
     quantity = sqlalchemy.Column(sqlalchemy.Integer)
     notes = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     product_id = sqlalchemy.Column(sqlalchemy.Integer)
 
-    order = relationship("Order", back_populates="items")
+    order = relationship("Order", back_populates="orderitems")

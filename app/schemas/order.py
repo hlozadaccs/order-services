@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -19,3 +20,14 @@ class OrderCreate(BaseModel):
     )
     notes: str | None = Field(None, description="Notas extras")
     items: list[OrderItem] = []
+
+
+class OrderResponse(BaseModel):
+    id: int
+    user_id: int
+    status: OrderStatus
+    order_type: OrderType
+    created_at: datetime
+    updated_at: datetime
+
+    orderitems: list[OrderItem] = []
