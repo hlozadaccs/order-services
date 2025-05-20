@@ -1,33 +1,40 @@
 from datetime import datetime
-from enum import Enum
 
 from pydantic import BaseModel, Field
+from pydantic.json_schema import SkipJsonSchema
 
 from app.domain.models.order import OrderStatus, OrderType
 
 
 class OrderItem(BaseModel):
     product_id: int = Field(..., description="ID del producto")
-    quantity: int = Field(..., description="Cantidad")
+    quantity: int = Field(..., description="Cantidad", gt=0)
     notes: str | None = Field(None, description="Notas extras")
 
 
-class OrderCreate(BaseModel):
-    user_id: int = Field(..., description="ID del usuario")
-    status: OrderStatus = Field(..., description="Estado de la orden")
-    order_type: OrderType = Field(
-        ..., description="Tipo de orden (DINE_IN, TIKEAWAY, DELIVERY)"
-    )
-    notes: str | None = Field(None, description="Notas extras")
-    items: list[OrderItem] = []
-
-
-class OrderResponse(BaseModel):
-    id: int
-    user_id: int
-    status: OrderStatus
-    order_type: OrderType
+class DatesFieldsModel(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
+class BaseOrder(BaseModel):
+    user_id: int
+    status: OrderStatus
+    order_type: OrderType
+
     orderitems: list[OrderItem] = []
+
+
+class OrderCreate(BaseOrder): ...
+
+
+class PartialUpdate(BaseModel):
+    user_id: int | SkipJsonSchema[None]
+    status: OrderStatus | SkipJsonSchema[None]
+    order_type: OrderType | SkipJsonSchema[None]
+
+    orderitems: list[OrderItem] | SkipJsonSchema[None] = None
+
+
+class OrderResponse(DatesFieldsModel, BaseOrder):
+    id: int

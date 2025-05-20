@@ -25,12 +25,10 @@ class Order(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, index=True)
     status = sqlalchemy.Column(
-        sqlalchemy.Enum(OrderStatus),
-        default=OrderStatus.PENDING,
+        sqlalchemy.String,
+        default=OrderStatus.PENDING.value,
     )
-    order_type = sqlalchemy.Column(
-        sqlalchemy.Enum(OrderType), default=OrderType.DINE_IN
-    )
+    order_type = sqlalchemy.Column(sqlalchemy.String, default=OrderType.DINE_IN.value)
     created_at = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.utcnow)
     updated_at = sqlalchemy.Column(
         sqlalchemy.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.routers import orders as orders_router
+from app.middlewares.authentication import JWTAuthMiddleware
 
 
 def create_application() -> FastAPI:
@@ -20,7 +21,14 @@ def create_application() -> FastAPI:
 app = create_application()
 app.include_router(orders_router.router, prefix="/api/v1/orders")  # URLS.py
 
+app.add_middleware(JWTAuthMiddleware)
+
 
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"message": "healthy"}
+
+
+@app.get("/protected")
+def protected():
+    return {"message": "JWT válido, acceso concedido"}
