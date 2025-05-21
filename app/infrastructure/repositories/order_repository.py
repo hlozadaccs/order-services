@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -21,11 +22,33 @@ class OrderRepository:
         )
         return result.scalars().all()
 
+    async def filter_orders_by_user_id(self, user_id: int):
+        result = await self.session.execute(
+            select(OrderModel)
+            .options(selectinload(OrderModel.orderitems))
+            .where(OrderModel.user_id == user_id)
+            .order_by(OrderModel.created_at.desc())
+        )
+        return result.scalars().all()
+
     async def get_order_by_id(self, order_id: int):
         result = await self.session.execute(
             select(OrderModel)
             .options(selectinload(OrderModel.orderitems))
             .where(OrderModel.id == order_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_order_by_user_and_order_id(self, user_id: int, order_id: int):
+        result = await self.session.execute(
+            select(OrderModel)
+            .options(selectinload(OrderModel.orderitems))
+            .where(
+                and_(
+                    OrderModel.user_id == user_id,
+                    OrderModel.id == order_id,
+                )
+            )
         )
         return result.scalar_one_or_none()
 
@@ -102,8 +125,14 @@ class OrderRepository:
 
         return order
 
-    async def delete(self, order_id: int) -> bool:
-        order = await self.get_order_by_id(order_id=order_id)
+    async def delete(self, order_id: int, user_id, is_admin: bool) -> bool:
+        if is_admin:
+            order = await self.get_order_by_id(order_id=order_id)
+        else:
+            order = await self.get_order_by_user_and_order_id(
+                user_id=user_id, order_id=order_id
+            )
+
         if not order:
             return False
 
