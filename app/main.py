@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.routers import orders as orders_router
+from app.config import POD_NAME
 from app.middlewares.authentication import JWTAuthMiddleware
 
 
@@ -26,7 +27,7 @@ app.add_middleware(JWTAuthMiddleware)
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    return {"message": "healthy"}
+    return {"message": f"POD: {POD_NAME} healthy"}
 
 
 @app.get("/protected")

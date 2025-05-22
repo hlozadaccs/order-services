@@ -1,7 +1,9 @@
 import httpx
 from async_lru import alru_cache
 
-DJANGO_BASE_URL = "http://127.0.0.1:8000"
+from app.config import DJANGO_SERVICE_URL
+
+DJANGO_BASE_URL = DJANGO_SERVICE_URL
 TOKEN_VERIFY = f"{DJANGO_BASE_URL}/api/v1/token/verify/"
 USERS_URL = f"{DJANGO_BASE_URL}/api/v1/users"
 
