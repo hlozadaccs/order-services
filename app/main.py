@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.routers import orders as orders_router
 from app.config import POD_NAME
@@ -23,6 +24,8 @@ app = create_application()
 app.include_router(orders_router.router, prefix="/api/v1/orders")  # URLS.py
 
 app.add_middleware(JWTAuthMiddleware)
+
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/health")
