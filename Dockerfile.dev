@@ -1,0 +1,25 @@
+# Dockerfile.dev
+FROM python:3.11-slim
+
+# Evita buffering en logs
+ENV PYTHONUNBUFFERED=1
+
+# Setea el directorio de trabajo
+WORKDIR /app
+
+# Instala dependencias del sistema
+RUN apt-get update && apt-get install -y build-essential libpq-dev curl
+
+# Copia dependencias y las instala
+COPY pyproject.toml poetry.lock ./
+RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-root
+
+# Copia el resto del código
+COPY . .
+
+# Expone el puerto
+EXPOSE 8081
+
+# Comando para desarrollo
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8081", "--reload"]
+
