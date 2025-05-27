@@ -3,16 +3,19 @@ from fastapi.exceptions import ValidationException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.session import get_session
+from app.infrastructure.producer import KafkaProducerSingleton
 from app.infrastructure.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate, OrderResponse, PartialUpdate
-from app.schemas.user import UserJWT
 from app.use_cases.order_usecase import OrderUseCase
 
 router = APIRouter()
 
 
 def get_usecase(session: AsyncSession) -> OrderUseCase:
-    return OrderUseCase(OrderRepository(session))
+    return OrderUseCase(
+        repo=OrderRepository(session),
+        kafka_producer=KafkaProducerSingleton(),
+    )
 
 
 @router.get("/", response_model=list[OrderResponse])

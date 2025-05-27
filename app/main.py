@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.api.routers import orders as orders_router
 from app.config import POD_NAME
+from app.infrastructure.producer import KafkaProducerSingleton
 from app.middlewares.authentication import JWTAuthMiddleware
 
 
@@ -24,6 +25,8 @@ app.include_router(orders_router.router, prefix="/api/v1/orders")  # URLS.py
 
 app.add_middleware(JWTAuthMiddleware)
 
+kafka_producer = KafkaProducerSingleton("localhost:9092")
+
 
 @app.get("/health")
 async def health() -> dict[str, str]:
@@ -33,3 +36,13 @@ async def health() -> dict[str, str]:
 @app.get("/protected")
 def protected():
     return {"message": "JWT válido, acceso concedido"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    await kafka_producer.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await kafka_producer.stop()

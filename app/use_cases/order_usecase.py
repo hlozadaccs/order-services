@@ -1,13 +1,15 @@
 from fastapi.exceptions import ValidationException
 
+from app.infrastructure.producer import KafkaProducerSingleton
 from app.infrastructure.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate, PartialUpdate
 from app.schemas.user import UserJWT
 
 
 class OrderUseCase:
-    def __init__(self, repo: OrderRepository):
+    def __init__(self, repo: OrderRepository, kafka_producer: KafkaProducerSingleton):
         self.repo = repo
+        self.kafka = kafka_producer
 
     async def list_orders(self, user: UserJWT):
         is_admin = user.role == "ADMIN"
@@ -30,7 +32,26 @@ class OrderUseCase:
         if not is_admin:
             order.user_id = user.user_id
 
-        return await self.repo.create(data_from_api=order)
+        new_order = await self.repo.create(data_from_api=order)
+
+        order_dict = {
+            "order_id": new_order.id,
+            "order_type": new_order.order_type,
+            "status": new_order.status,
+            "created_at": new_order.created_at.isoformat(),
+            "order_items": [
+                {
+                    "product_id": item.product_id,
+                    "quantity": item.quantity,
+                    "notes": item.notes,
+                }
+                for item in new_order.orderitems
+            ],
+        }
+
+        await self.kafka.send("kitchen-new-orders", order_dict)
+
+        return new_order
 
     async def update_order(self, order_id: int, order: OrderCreate, user: UserJWT):
         is_admin = user.role == "ADMIN"

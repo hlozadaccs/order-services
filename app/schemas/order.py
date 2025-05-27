@@ -25,7 +25,8 @@ class BaseOrder(BaseModel):
     orderitems: list[OrderItem] = []
 
 
-class OrderCreate(BaseOrder): ...
+class OrderCreate(BaseOrder):
+    model_config = {"from_attributes": True}
 
 
 class PartialUpdate(BaseModel):
