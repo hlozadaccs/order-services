@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.routers import orders as orders_router
 from app.config import POD_NAME
@@ -26,6 +27,8 @@ app.include_router(orders_router.router, prefix="/api/v1/orders")  # URLS.py
 app.add_middleware(JWTAuthMiddleware)
 
 kafka_producer = KafkaProducerSingleton("localhost:9092")
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app)
 
 
 @app.get("/health")
