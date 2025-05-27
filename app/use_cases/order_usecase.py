@@ -1,9 +1,16 @@
 from fastapi.exceptions import ValidationException
 
-from app.infrastructure.producer import KafkaProducerSingleton
+from app.infrastructure.kafka.producer import KafkaProducerSingleton
+from app.infrastructure.logging.logger import setup_logger
+from app.infrastructure.prometheus.metrics import (
+    order_creation_duration_seconds,
+    orders_created_counter,
+)
 from app.infrastructure.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate, PartialUpdate
 from app.schemas.user import UserJWT
+
+logger = setup_logger(__name__)
 
 
 class OrderUseCase:
@@ -28,30 +35,33 @@ class OrderUseCase:
         )
 
     async def create_order(self, order: OrderCreate, user: UserJWT):
-        is_admin = user.role == "ADMIN"
-        if not is_admin:
-            order.user_id = user.user_id
+        with order_creation_duration_seconds.time(order_type=order.order_type.value):
+            is_admin = user.role == "ADMIN"
+            if not is_admin:
+                order.user_id = user.user_id
 
-        new_order = await self.repo.create(data_from_api=order)
+            new_order = await self.repo.create(data_from_api=order)
 
-        order_dict = {
-            "order_id": new_order.id,
-            "order_type": new_order.order_type,
-            "status": new_order.status,
-            "created_at": new_order.created_at.isoformat(),
-            "order_items": [
-                {
-                    "product_id": item.product_id,
-                    "quantity": item.quantity,
-                    "notes": item.notes,
-                }
-                for item in new_order.orderitems
-            ],
-        }
+            order_dict = {
+                "order_id": new_order.id,
+                "order_type": new_order.order_type,
+                "status": new_order.status,
+                "created_at": new_order.created_at.isoformat(),
+                "order_items": [
+                    {
+                        "product_id": item.product_id,
+                        "quantity": item.quantity,
+                        "notes": item.notes,
+                    }
+                    for item in new_order.orderitems
+                ],
+            }
 
-        await self.kafka.send("kitchen-new-orders", order_dict)
+            await self.kafka.send("kitchen-new-orders", order_dict)
+            logger.info("Creating new order", extra={"user_id": user.user_id})
+            orders_created_counter.labels(order_type=new_order.order_type.value).inc()
 
-        return new_order
+            return new_order
 
     async def update_order(self, order_id: int, order: OrderCreate, user: UserJWT):
         is_admin = user.role == "ADMIN"

@@ -3,7 +3,7 @@ from fastapi.exceptions import ValidationException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.session import get_session
-from app.infrastructure.producer import KafkaProducerSingleton
+from app.infrastructure.kafka.producer import KafkaProducerSingleton
 from app.infrastructure.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate, OrderResponse, PartialUpdate
 from app.use_cases.order_usecase import OrderUseCase
