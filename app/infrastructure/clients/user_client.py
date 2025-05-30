@@ -1,11 +1,10 @@
 import httpx
 from async_lru import alru_cache
 
-from app.config import DJANGO_SERVICE_URL
+from app.config import settings
 
-DJANGO_BASE_URL = DJANGO_SERVICE_URL
-TOKEN_VERIFY = f"{DJANGO_BASE_URL}/api/v1/token/verify/"
-USERS_URL = f"{DJANGO_BASE_URL}/api/v1/users"
+TOKEN_VERIFY = f"{settings.MONOLITHIC_PROJECT_URL}/api/v1/token/verify/"
+USERS_URL = f"{settings.MONOLITHIC_PROJECT_URL}/api/v1/users"
 
 
 @alru_cache(maxsize=1024)

@@ -15,3 +15,13 @@ HEAD
 429 Throttling DDoS
 
 >= 500
+
+minikube delete --all --purge
+minikube start --driver=docker
+eval $(minikube docker-env)
+docker build -t order-service:latest -f Dockerfile.dev .
+minikube image load order-service:latest
+minikube addons enable ingress
+minikube addons enable metrics-server
+
+kubectl rollout restart deployment order-service

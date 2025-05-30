@@ -1,16 +1,20 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.routers import orders as orders_router
-from app.config import POD_NAME
+from app.config import settings
 from app.infrastructure.kafka.producer import KafkaProducerSingleton
 from app.infrastructure.logging.logger import setup_logger
 from app.middlewares.authentication import JWTAuthMiddleware
 
+bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", settings.KAFKA_URL)
+
+
 logger = setup_logger("app")
-kafka_producer = KafkaProducerSingleton("localhost:9092")
+kafka_producer = KafkaProducerSingleton(bootstrap_servers)
 
 
 @asynccontextmanager
@@ -50,7 +54,7 @@ instrumentator.instrument(app).expose(app)
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    return {"message": f"POD: {POD_NAME} healthy"}
+    return {"message": f"POD: {settings.POD_NAME} healthy"}
 
 
 @app.get("/protected")

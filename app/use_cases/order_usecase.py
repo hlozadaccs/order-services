@@ -35,7 +35,8 @@ class OrderUseCase:
         )
 
     async def create_order(self, order: OrderCreate, user: UserJWT):
-        with order_creation_duration_seconds.time(order_type=order.order_type.value):
+        order_type = order.order_type.value
+        with order_creation_duration_seconds.time():
             is_admin = user.role == "ADMIN"
             if not is_admin:
                 order.user_id = user.user_id
@@ -59,7 +60,7 @@ class OrderUseCase:
 
             await self.kafka.send("kitchen-new-orders", order_dict)
             logger.info("Creating new order", extra={"user_id": user.user_id})
-            orders_created_counter.labels(order_type=new_order.order_type.value).inc()
+            orders_created_counter.labels(order_type=order_type).inc()
 
             return new_order
 

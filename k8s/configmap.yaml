@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-services-config
+data:
+  POSTGRES_HOST: "192.168.0.23"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "db"
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "password"
+
+  KAFKA_HOST: "192.168.0.23"
+  KAFKA_PORT: "9092"
+  KAFKA_URL: "192.168.0.23:9092"
+
+  MONOLITHIC_PROJECT_SECRET: "django-insecure-z9c%+(7k)cbi+p))9k=)t=x!*4k7-(_dlw4o0o0v-gb9ar^5+z"
+  MONOLITHIC_PROJECT_ALGORITHM: "HS256"
+  MONOLITHIC_PROJECT_URL: "http://192.168.0.23:8000"
+

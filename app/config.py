@@ -1,19 +1,37 @@
-import os
+from pathlib import Path
 
-from pydantic_settings import BaseSettings
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/db"
-)
-DJANGO_SERVICE_URL = os.getenv("DJANGO_SERVICE_URL", "http://localhost:8000")
-POD_NAME = os.getenv("POD_NAME") or open("/etc/hostname").read().strip()
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = DATABASE_URL
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
 
-    class Config:
-        env_file = ".env"
+    KAFKA_HOST: str
+    KAFKA_PORT: int
+    KAFKA_URL: str
+
+    PROMETHEUS_HOST: str
+    PROMETHEUS_PORT: int
+    PROMETHEUS_URL: str
+
+    MONOLITHIC_PROJECT_SECRET: str
+    MONOLITHIC_PROJECT_ALGORITHM: str
+    MONOLITHIC_PROJECT_URL: str
+
+    POD_NAME: str = Path("/etc/hostname").read_text().strip()
+
+    model_config = SettingsConfigDict(env_file=".env.dev")
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
 
 settings = Settings()

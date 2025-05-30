@@ -1,25 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-service
+  name: order-services
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: order-service
+      app: order-services
   template:
     metadata:
       labels:
-        app: order-service
+        app: order-services
     spec:
       containers:
-        - name: order-service
-          image: order-service:latest
+        - name: order-services
+          image: order-services:dev
           imagePullPolicy: IfNotPresent
-          env:
-            - name: DATABASE_URL
-              value: postgresql+asyncpg://postgres:password@host.minikube.internal:5432/db
-            - name: DJANGO_SERVICE_URL
-              value: http://host.minikube.internal:8000
           ports:
             - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: order-services-config

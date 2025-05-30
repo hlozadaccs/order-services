@@ -3,11 +3,10 @@ kind: Service
 metadata:
   name: order-services
 spec:
+  type: LoadBalancer
   selector:
-    app: order-service
+    app: order-services
   ports:
-    - protocol: TCP
-      port: 8081
+    - port: 8081
       targetPort: 8081
-      name: http
-  type: ClusterIP
+      nodePort: 30081
