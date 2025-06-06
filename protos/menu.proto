@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+enum MenuCategory {
+  APPETIZER = 0;
+  MAIN_COURSE = 1;
+  DESSERT = 2;
+  SOFT_DRINK = 3;
+  JUICE = 4;
+  ALCOHOLIC_BEVERAGE = 5;
+  OTHER = 6;
+}
+
+service MenuService {
+  rpc CreateMenuItem (CreateMenuItemRequest) returns (MenuItemResponse);
+
+  rpc GetMenuItem (GetMenuItemRequest) returns (MenuItemResponse);
+  rpc ListMenuItems (ListMenuItemsRequest) returns (ListMenuItemsResponse);
+
+  rpc UpdateMenuItem (UpdateMenuItemRequest) returns (MenuItemResponse);
+
+  rpc DeleteMenuItem (DeleteMenuItemRequest) returns (DeleteMenuItemResponse);
+
+  rpc RestoreMenuItem (RestoreMenuItemRequest) returns (MenuItemResponse);
+}
+
+message Empty {}
+
+message MenuItem {
+    int32 id = 1;
+    string name = 2;
+    MenuCategory category = 3;
+    float price = 4;
+    bool available = 5;
+    string description = 6;
+}
+
+message CreateMenuItemRequest {
+    string name = 1;
+    MenuCategory category = 2;
+    float price = 3;
+    bool available = 4;
+    string description = 5;
+}
+
+message GetMenuItemRequest {
+    int32 id = 1;
+}
+
+message ListMenuItemsRequest {
+  optional MenuCategory category = 1;
+  optional float min_price = 2;
+  optional float max_price = 3;
+  optional bool available = 4;
+  optional string search_query = 5;
+}
+
+message UpdateMenuItemRequest {
+    int32 id = 1;
+    optional string name = 2;
+    optional MenuCategory category = 3;
+    optional float price = 4;
+    optional bool available = 5;
+    optional string description = 6;
+}
+
+message DeleteMenuItemRequest {
+  int32 id = 1;
+  bool permanent = 2;
+}
+
+message RestoreMenuItemRequest {
+  int32 id = 1;
+}
+
+message MenuItemResponse {
+    MenuItem item = 1;
+}
+
+message ListMenuItemsResponse {
+    repeated MenuItem items = 1;
+}
+
+message DeleteMenuItemResponse {
+    bool success = 1;
+    string message = 2;
+    bool is_soft_deleted = 3;
+}

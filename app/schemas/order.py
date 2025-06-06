@@ -39,3 +39,37 @@ class PartialUpdate(BaseModel):
 
 class OrderResponse(DatesFieldsModel, BaseOrder):
     id: int
+
+
+class OrderItemEnriched(OrderItem):
+    name: str
+    price: float
+    available: bool
+    description: str
+
+
+class OrderResponseEnriched(OrderResponse):
+    orderitems: list[OrderItemEnriched] = []
+
+
+def to_response(order_orm) -> OrderResponseEnriched:
+    return OrderResponseEnriched(
+        id=order_orm.id,
+        user_id=order_orm.user_id,
+        status=order_orm.status,
+        order_type=order_orm.order_type,
+        created_at=order_orm.created_at,
+        updated_at=order_orm.updated_at,
+        orderitems=[
+            OrderItemEnriched(
+                product_id=item.product_id,
+                name=item.name,
+                price=item.price,
+                available=item.available,
+                quantity=item.quantity,
+                notes=item.notes,
+                description=item.description,
+            )
+            for item in order_orm.orderitems
+        ],
+    )

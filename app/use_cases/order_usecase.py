@@ -1,5 +1,6 @@
 from fastapi.exceptions import ValidationException
 
+from app.infrastructure.clients.menu_client import MenuClientSingleton
 from app.infrastructure.kafka.producer import KafkaProducerSingleton
 from app.infrastructure.logging.logger import setup_logger
 from app.infrastructure.prometheus.metrics import (
@@ -14,16 +15,38 @@ logger = setup_logger(__name__)
 
 
 class OrderUseCase:
-    def __init__(self, repo: OrderRepository, kafka_producer: KafkaProducerSingleton):
+    def __init__(
+        self,
+        repo: OrderRepository,
+        kafka_producer: KafkaProducerSingleton,
+        menu_client: MenuClientSingleton,
+    ):
         self.repo = repo
         self.kafka = kafka_producer
+        self.menu_client = menu_client
 
     async def list_orders(self, user: UserJWT):
         is_admin = user.role == "ADMIN"
         if is_admin:
-            return await self.repo.get_all()
+            orders = await self.repo.get_all()
+        else:
+            orders = await self.repo.filter_orders_by_user_id(user_id=user.user_id)
 
-        return await self.repo.filter_orders_by_user_id(user_id=user.user_id)
+        for order in orders:
+            enriched_items = []
+            for item in order.orderitems:
+                info = self.menu_client.get_menu_item(item.product_id)  # <- Damelo
+
+                item.name = info.name
+                item.category = info.category
+                item.price = info.price
+                item.available = info.available
+                item.description = info.description
+                enriched_items.append(item)  # <-
+
+            order.orderitems = enriched_items
+
+        return orders
 
     async def get_order(self, order_id: int, user: UserJWT):
         is_admin = user.role == "ADMIN"

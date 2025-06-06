@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     POD_NAME: str = Path("/etc/hostname").read_text().strip()
 
-    model_config = SettingsConfigDict(env_file=".env.dev")
+    model_config = SettingsConfigDict(env_file=".env.local")
 
     @property
     def DATABASE_URL(self) -> str:
